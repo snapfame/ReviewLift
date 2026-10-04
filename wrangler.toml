@@ -1,0 +1,8 @@
+# TanStack Start / Nitro Cloudflare Workers target.
+# Do not deploy until you explicitly choose to. Local `npm run dev` does not use this file.
+name = "reviewlift"
+compatibility_date = "2026-08-01"
+compatibility_flags = ["nodejs_compat"]
+# After `npm run build`, Nitro writes `.output/server/wrangler.json`.
+# Deploy with: npx wrangler deploy --config .output/server/wrangler.json
+# from the project root (or `npx nitro deploy --prebuilt`).
