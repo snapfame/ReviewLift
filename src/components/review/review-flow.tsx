@@ -25,15 +25,6 @@ import {
 } from "@/lib/public-review-client";
 import { cn } from "@/lib/utils";
 
-const GOOGLE_REVIEW_CTA = "Copy Review & Open Google";
-const LEGACY_GOOGLE_CTA = "Copy & Continue to Google";
-
-function googleReviewCta(value: string | null | undefined): string {
-  const text = value?.trim();
-  if (!text || text === LEGACY_GOOGLE_CTA) return GOOGLE_REVIEW_CTA;
-  return text;
-}
-
 type Lang = "english" | "hinglish" | "hindi";
 type Length = "short" | "medium" | "detailed";
 
@@ -56,6 +47,7 @@ export function ReviewFlow({ slug, fromQr }: { slug: string; fromQr: boolean }) 
   const [handoff, setHandoff] = useState<"idle" | "copied" | "manual">("idle");
   const [finePointer, setFinePointer] = useState(false);
   const draftRef = useRef<HTMLTextAreaElement>(null);
+  const handoffRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const query = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -64,6 +56,11 @@ export function ReviewFlow({ slug, fromQr }: { slug: string; fromQr: boolean }) 
     query.addEventListener("change", update);
     return () => query.removeEventListener("change", update);
   }, []);
+
+  useEffect(() => {
+    if (handoff === "idle") return;
+    handoffRef.current?.scrollIntoView({ block: "nearest" });
+  }, [handoff]);
 
   useEffect(() => {
     let active = true;
@@ -431,7 +428,7 @@ export function ReviewFlow({ slug, fromQr }: { slug: string; fromQr: boolean }) 
         </ol>
       </header>
 
-      <main className={cn("mx-auto max-w-md px-4 py-6", step === 3 ? "pb-72" : "pb-28")}>
+      <main className={cn("mx-auto max-w-md px-4 py-6", step === 3 ? "pb-40" : "pb-28")}>
         {step === 1 ? (
           <section>
             <h1 className="text-2xl font-semibold">{settings.customer_headline || "What did you visit us for?"}</h1>
@@ -557,6 +554,27 @@ export function ReviewFlow({ slug, fromQr }: { slug: string; fromQr: boolean }) 
           <section>
             <h1 className="text-2xl font-semibold">Your Review Draft</h1>
             <p className="mt-2 text-sm text-muted-foreground">Edit anything before posting.</p>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              Google requires you to paste the copied review manually.
+            </p>
+            <div ref={handoffRef} className="scroll-mb-28">
+              {handoff === "copied" ? (
+                <div role="status" className="mt-4 rounded-xl border border-border bg-card px-3 py-3 text-sm leading-relaxed">
+                  <p>Your review is copied! On Google, tap and hold the review box, then select Paste.</p>
+                  {finePointer ? (
+                    <p className="mt-2">Click the review box and press Ctrl+V (Windows) or Cmd+V (Mac).</p>
+                  ) : null}
+                </div>
+              ) : null}
+              {handoff === "manual" ? (
+                <div role="status" className="mt-4 rounded-xl border border-border bg-card px-3 py-3 text-sm leading-relaxed">
+                  <p>Clipboard permission was denied. The review is selected. Copy it, then open Google.</p>
+                  <Button type="button" variant="outline" className="mt-3 min-h-11 w-full" onClick={() => openGoogle()}>
+                    Open Google
+                  </Button>
+                </div>
+              ) : null}
+            </div>
             {busy ? (
               <p className="mt-6 text-sm text-muted-foreground">Creating your review draft…</p>
             ) : (
@@ -582,7 +600,7 @@ export function ReviewFlow({ slug, fromQr }: { slug: string; fromQr: boolean }) 
         ) : null}
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-border bg-background/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 border-t border-border bg-background/95 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur">
         <div className="mx-auto flex max-w-md flex-col gap-2">
           {step === 1 ? (
             <Button
@@ -611,34 +629,13 @@ export function ReviewFlow({ slug, fromQr }: { slug: string; fromQr: boolean }) 
           ) : null}
           {step === 3 ? (
             <>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                Google requires you to paste the copied review manually.
-              </p>
-              {handoff === "copied" ? (
-                <div role="status" className="rounded-xl border border-border bg-card px-3 py-3 text-sm leading-relaxed">
-                  <p>Your review is copied! On Google, tap and hold the review box, then select Paste.</p>
-                  {finePointer ? (
-                    <p className="mt-2">Click the review box and press Ctrl+V (Windows) or Cmd+V (Mac).</p>
-                  ) : null}
-                </div>
-              ) : null}
-              {handoff === "manual" ? (
-                <div role="status" className="rounded-xl border border-border bg-card px-3 py-3 text-sm leading-relaxed">
-                  <p>
-                    Clipboard permission was denied. The review is selected. Copy it, then open Google.
-                  </p>
-                  <Button type="button" variant="outline" className="mt-3 min-h-11 w-full" onClick={() => openGoogle()}>
-                    Open Google
-                  </Button>
-                </div>
-              ) : null}
               <Button
                 className="min-h-12 w-full whitespace-normal text-center text-base leading-snug"
                 style={{ background: accent }}
                 disabled={busy || !draft}
                 onClick={() => void handleGoogle()}
               >
-                {googleReviewCta(settings.google_cta_text)}
+                Copy Review & Open Google
               </Button>
               {business.instagram_url ? (
                 <Button type="button" variant="outline" className="min-h-12 w-full" onClick={() => void handleInstagram()}>
