@@ -9,7 +9,13 @@ type Length = "short" | "medium" | "detailed";
 
 export async function getPublicBusinessClient(slug: string): Promise<PublicBusinessPayload> {
   const { data: status } = await supabase.rpc("public_business_status", { _slug: slug });
-  if (status === "not_found") return { status: "not_found" };
+  if (status === "not_found") {
+    const { data: redirected, error: redirectError } = await supabase.rpc("resolve_business_slug", { _slug: slug });
+    if (!redirectError && typeof redirected === "string" && redirected.length > 0 && redirected !== slug) {
+      return { status: "redirect", redirectSlug: redirected };
+    }
+    return { status: "not_found" };
+  }
   if (status === "unavailable") return { status: "unavailable" };
 
   const { data: business } = await supabase

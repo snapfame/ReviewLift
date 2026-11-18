@@ -1,9 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Check } from "lucide-react";
 
-import { MarketingPage } from "@/components/marketing/site-chrome";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { MarketingPage, PageIntro } from "@/components/marketing/site-chrome";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -12,12 +9,12 @@ export const Route = createFileRoute("/pricing")({
       {
         name: "description",
         content:
-          "Simple plans for local businesses. Online billing is not enabled yet — plans are assigned manually during early access.",
+          "Early-access plans for ReviewLift. Online billing is not enabled. Growth and Pro prices are not finalised.",
       },
       { property: "og:title", content: "ReviewLift pricing" },
       {
         property: "og:description",
-        content: "Starter, Growth and Pro plans for businesses collecting honest Google reviews.",
+        content: "Starter, Growth, and Pro. Checkout is not live yet.",
       },
     ],
   }),
@@ -29,76 +26,63 @@ const PLANS = [
     name: "Starter",
     price: "₹0",
     note: "Early access",
-    features: ["1 business", "Permanent QR code", "Up to 200 drafts / month", "Core analytics"],
+    cta: "Create account",
+    href: "/signup" as const,
+    features: ["1 business", "Permanent QR code", "Up to 200 drafts / month", "Core activity"],
   },
   {
     name: "Growth",
-    price: "₹—",
-    note: "Pricing being finalised",
+    price: "Price not final",
+    note: "Assigned manually",
     highlight: true,
-    features: [
-      "Up to 3 businesses",
-      "Up to 2,000 drafts / month",
-      "Full funnel analytics",
-      "Branding and custom wording",
-    ],
+    cta: "Contact us",
+    href: "/contact" as const,
+    features: ["Up to 3 businesses", "Up to 2,000 drafts / month", "Full activity funnel", "Branding and custom wording"],
   },
   {
     name: "Pro",
-    price: "₹—",
-    note: "Pricing being finalised",
-    features: [
-      "Up to 10 businesses",
-      "Unlimited drafts",
-      "Priority support",
-      "Early access to Google Business Profile tools",
-    ],
+    price: "Price not final",
+    note: "Assigned manually",
+    cta: "Contact us",
+    href: "/contact" as const,
+    features: ["Up to 10 businesses", "Unlimited drafts", "Priority support during early access"],
   },
 ];
 
 function Pricing() {
   return (
     <MarketingPage>
-      <section className="hero-gradient border-b border-border">
-        <div className="container-page py-16 text-center">
-          <h1 className="text-4xl font-semibold sm:text-5xl">Pricing</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-            Online checkout is not live yet. During early access we activate plans for you manually —
-            create an account and we will set it up.
-          </p>
-        </div>
-      </section>
-      <div className="container-page grid gap-6 py-14 lg:grid-cols-3">
+      <PageIntro eyebrow="Simple pricing" title="Start with a plan we can actually honour.">
+        Online checkout is not live. During early access, plans are activated manually. Growth and Pro do not have a published price yet.
+      </PageIntro>
+      <div className="rl-wrap grid gap-4 py-14 lg:grid-cols-3">
         {PLANS.map((plan) => (
-          <div
+          <article
             key={plan.name}
-            className={`panel flex flex-col p-6 ${plan.highlight ? "ring-2 ring-primary" : ""}`}
+            className={`flex flex-col rounded-[28px] bg-white p-6 ${plan.highlight ? "ring-2 ring-[var(--brand-primary)]" : ""}`}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <h2 className="text-xl font-semibold">{plan.name}</h2>
-              {plan.highlight ? <Badge>Most popular</Badge> : null}
+              {plan.highlight ? (
+                <span className="rounded-full bg-[var(--brand-primary)] px-2.5 py-1 text-xs font-semibold text-white">Recommended to discuss</span>
+              ) : null}
             </div>
-            <p className="mt-4 text-3xl font-semibold">{plan.price}</p>
-            <p className="text-sm text-muted-foreground">{plan.note}</p>
-            <ul className="mt-6 flex-1 space-y-2 text-sm">
+            <p className="mt-6 text-3xl font-semibold tracking-tight">{plan.price}</p>
+            <p className="text-sm text-[#737373]">{plan.note}</p>
+            <ul className="mt-6 flex-1 space-y-2 text-sm text-[#333]">
               {plan.features.map((feature) => (
-                <li key={feature} className="flex items-start gap-2">
-                  <Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
-                  {feature}
-                </li>
+                <li key={feature}>{feature}</li>
               ))}
             </ul>
-            <Button asChild className="mt-6" variant={plan.highlight ? "default" : "outline"}>
-              <Link to="/signup">Create account</Link>
-            </Button>
-          </div>
+            <Link to={plan.href} className={`rl-btn mt-8 ${plan.highlight ? "rl-btn-primary" : "rl-btn-ghost"}`}>
+              {plan.cta}
+            </Link>
+          </article>
         ))}
       </div>
-      <div className="container-page pb-16">
-        <p className="panel p-6 text-sm text-muted-foreground">
-          Billing integration is intentionally not shipped yet: there are no fake checkout flows in
-          this product. Plan and subscription records already exist in the database, so payments can
-          be switched on later without any data migration.
+      <div className="rl-wrap pb-16">
+        <p className="max-w-3xl text-sm leading-relaxed text-[#555]">
+          There is no card checkout in the product yet. Creating an account does not charge you. Plan limits above describe the catalog used for manual assignment, not a live subscription.
         </p>
       </div>
     </MarketingPage>

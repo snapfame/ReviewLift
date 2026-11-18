@@ -1,4 +1,5 @@
 import { Instagram } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -28,6 +29,7 @@ type Lang = "english" | "hinglish" | "hindi";
 type Length = "short" | "medium" | "detailed";
 
 export function ReviewFlow({ slug, fromQr }: { slug: string; fromQr: boolean }) {
+  const navigate = useNavigate();
   const [payload, setPayload] = useState<PublicBusinessPayload | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -54,6 +56,15 @@ export function ReviewFlow({ slug, fromQr }: { slug: string; fromQr: boolean }) 
           data = await getPublicBusinessClient(slug);
         }
         if (!active) return;
+        if (data.status === "redirect" && data.redirectSlug && data.redirectSlug !== slug) {
+          await navigate({
+            to: "/r/$businessSlug",
+            params: { businessSlug: data.redirectSlug },
+            search: fromQr ? { src: "qr" } : {},
+            replace: true,
+          });
+          return;
+        }
         setPayload(data);
         if (data.status === "ok" && data.business && data.settings) {
           setLanguage(data.settings.default_language);
@@ -81,7 +92,7 @@ export function ReviewFlow({ slug, fromQr }: { slug: string; fromQr: boolean }) 
     return () => {
       active = false;
     };
-  }, [slug, fromQr]);
+  }, [slug, fromQr, navigate]);
 
   const business = payload?.business;
   const settings = payload?.settings;
@@ -296,6 +307,13 @@ export function ReviewFlow({ slug, fromQr }: { slug: string; fromQr: boolean }) 
     return (
       <div className="mx-auto flex min-h-dvh max-w-md items-center justify-center px-4">
         <p className="text-sm text-muted-foreground">Loading review page…</p>
+      </div>
+    );
+  }
+  if (payload.status === "redirect") {
+    return (
+      <div className="mx-auto flex min-h-dvh max-w-md items-center justify-center px-4">
+        <p className="text-sm text-muted-foreground">Opening the current review page…</p>
       </div>
     );
   }

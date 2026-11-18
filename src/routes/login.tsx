@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
 import { AuthCard } from "@/components/auth/auth-card";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMemberships } from "@/lib/business";
+import { SUSPENDED_LOGIN_MESSAGE } from "@/lib/account-status";
 import { relativeRedirect } from "@/lib/urls";
 
 export const Route = createFileRoute("/login")({
@@ -24,6 +25,10 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
+function isSuspensionError(message: string): boolean {
+  return /banned|suspended/i.test(message);
+}
+
 function LoginPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
@@ -31,13 +36,20 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
+  useEffect(() => {
+    const message = sessionStorage.getItem("reviewlift:suspended");
+    if (!message) return;
+    sessionStorage.removeItem("reviewlift:suspended");
+    toast.error(message);
+  }, []);
+
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setBusy(true);
     const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setBusy(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(isSuspensionError(error.message) ? SUSPENDED_LOGIN_MESSAGE : error.message);
       return;
     }
     const user = data.user;
@@ -46,11 +58,19 @@ function LoginPage() {
       await navigate({ to: requested || "/dashboard" });
       return;
     }
-    const { data: profile } = await supabase
+    const profileResult = await supabase
       .from("profiles")
-      .select("system_role")
+      .select("system_role,account_status")
       .eq("id", user.id)
       .maybeSingle();
+    const profile = profileResult.error
+      ? (await supabase.from("profiles").select("system_role").eq("id", user.id).maybeSingle()).data
+      : profileResult.data;
+    if (profile && "account_status" in profile && profile.account_status === "suspended") {
+      await supabase.auth.signOut();
+      toast.error(SUSPENDED_LOGIN_MESSAGE);
+      return;
+    }
     if (profile?.system_role === "super_admin") {
       await navigate({ to: "/admin" });
       return;

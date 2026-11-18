@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { MarketingPage } from "@/components/marketing/site-chrome";
-import { Button } from "@/components/ui/button";
+import { MarketingPage, PageIntro } from "@/components/marketing/site-chrome";
 
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({
@@ -10,12 +9,12 @@ export const Route = createFileRoute("/how-it-works")({
       {
         name: "description",
         content:
-          "From QR scan to posted Google review in four steps, plus how the zero-cost review draft engine works.",
+          "Customers scan a QR, describe the visit, edit a draft, and post on Google themselves. You set the page up once.",
       },
       { property: "og:title", content: "How ReviewLift works" },
       {
         property: "og:description",
-        content: "Scan, choose services, describe the experience, edit the draft, post on Google.",
+        content: "The customer journey and the one-time business setup.",
       },
     ],
   }),
@@ -23,89 +22,73 @@ export const Route = createFileRoute("/how-it-works")({
 });
 
 const CUSTOMER = [
-  ["Scan the QR", "The QR points at a permanent link like /r/your-business. No app, no login."],
-  ["Choose services", "Only the services you have configured show up, grouped by category."],
-  ["Describe the experience", "Excellent, Good, Average or Not Good, plus what stood out."],
-  ["Get an editable draft", "Composed instantly from their own answers, in their chosen language."],
-  ["Copy and continue", "The customer copies the text and posts it on Google themselves."],
+  ["Scan the QR", "It opens a permanent link such as /r/your-business. No app and no login."],
+  ["Choose services", "Only the services that business has turned on, grouped by category."],
+  ["Describe the experience", "Excellent, Good, Average, or Not Good, plus what stood out."],
+  ["Edit the draft", "The suggestion is composed from those answers, in the language they pick."],
+  ["Continue to Google", "They copy the text and publish it on Google themselves."],
 ];
 
 const OWNER = [
-  ["Create your account", "Email and password, then a five-step onboarding wizard."],
-  ["Add services", "Categories and services with per-service vocabulary."],
-  ["Configure the experience", "Headlines, languages, draft length, standout attributes."],
-  ["Print the QR", "Download PNG or SVG and place it at your counter."],
-  ["Watch the funnel", "Visits, sessions, drafts, copies and Google review page clicks."],
+  ["Create your account", "Email and password, then a short onboarding flow."],
+  ["Add services", "The categories and services customers will actually see."],
+  ["Set the experience", "Headlines, languages, draft length, and standout attributes."],
+  ["Place the QR", "Download PNG or SVG and put it where the visit ends."],
+  ["Watch the activity", "Visits, sessions, drafts, copies, and Google review page clicks."],
 ];
 
 function HowItWorks() {
   return (
     <MarketingPage>
-      <section className="hero-gradient border-b border-border">
-        <div className="container-page py-16">
-          <h1 className="text-4xl font-semibold sm:text-5xl">How it works</h1>
-          <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-            Two sides: what your customer sees in under a minute, and what you set up once.
-          </p>
-        </div>
-      </section>
-
-      <div className="container-page grid gap-10 py-14 lg:grid-cols-2">
-        <section>
-          <h2 className="text-2xl font-semibold">For the customer</h2>
-          <ol className="mt-5 space-y-4">
-            {CUSTOMER.map(([title, body], i) => (
-              <li key={title} className="panel flex gap-4 p-5">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-                  {i + 1}
-                </span>
-                <div>
-                  <h3 className="font-semibold">{title}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </section>
-        <section>
-          <h2 className="text-2xl font-semibold">For the business</h2>
-          <ol className="mt-5 space-y-4">
-            {OWNER.map(([title, body], i) => (
-              <li key={title} className="panel flex gap-4 p-5">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
-                  {i + 1}
-                </span>
-                <div>
-                  <h3 className="font-semibold">{title}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </section>
+      <PageIntro eyebrow="The journey" title="From a scan to a review the customer posts.">
+        Two sides: what a customer does on their phone, and what you set up once.
+      </PageIntro>
+      <div className="rl-wrap grid gap-12 py-14 lg:grid-cols-2">
+        <StepList title="For the customer" steps={CUSTOMER} />
+        <StepList title="For the business" steps={OWNER} />
       </div>
-
-      <section className="border-t border-border bg-card">
-        <div className="container-page py-14">
-          <h2 className="text-2xl font-semibold">How the drafts are written</h2>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="border-t border-[#E8E8E5] bg-white">
+        <div className="rl-wrap py-14">
+          <h2 className="text-3xl font-semibold">How a draft is written</h2>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
             {[
-              ["Composition, not templates", "Openings, service context, experience, attributes, the customer's note and closings are assembled per draft."],
-              ["Structure variation", "Several sentence structures with different orderings, so a regenerate reads differently."],
-              ["Honest tone mapping", "Average stays balanced and Not Good stays dissatisfied — never rewritten as praise."],
-              ["Zero API cost", "Everything runs on your own backend. No paid AI provider is involved."],
+              ["Pieces, not one template", "The opening, the service, the experience, attributes, the customer's note, and a closing are assembled for that visit."],
+              ["Another draft reads differently", "A regenerate changes structure, not just a couple of synonyms."],
+              ["The rating sets the tone", "Average stays balanced. Not Good stays dissatisfied."],
+              ["Composed in the product", "This flow does not call a paid AI provider."],
             ].map(([title, body]) => (
-              <div key={title} className="panel p-5">
+              <article key={title} className="rounded-[24px] bg-[#FAFAF8] p-6">
                 <h3 className="font-semibold">{title}</h3>
-                <p className="mt-1.5 text-sm text-muted-foreground">{body}</p>
-              </div>
+                <p className="mt-2 text-sm leading-relaxed text-[#555]">{body}</p>
+              </article>
             ))}
           </div>
-          <Button asChild size="lg" className="mt-8">
-            <Link to="/signup">Get Started</Link>
-          </Button>
+          <Link to="/signup" className="rl-btn rl-btn-primary mt-8">
+            Get Started
+          </Link>
         </div>
       </section>
     </MarketingPage>
+  );
+}
+
+function StepList({ title, steps }: { title: string; steps: string[][] }) {
+  return (
+    <section>
+      <h2 className="text-2xl font-semibold">{title}</h2>
+      <ol className="mt-5 space-y-3">
+        {steps.map(([name, body], index) => (
+          <li key={name} className="flex gap-4 rounded-[24px] bg-white p-5">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[var(--brand-primary)] text-sm font-semibold text-white">
+              {index + 1}
+            </span>
+            <div>
+              <h3 className="font-semibold">{name}</h3>
+              <p className="mt-1 text-sm leading-relaxed text-[#555]">{body}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }

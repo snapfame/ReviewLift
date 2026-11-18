@@ -8,6 +8,12 @@ const langEnum = z.enum(["english", "hinglish", "hindi"]);
 const expEnum = z.enum(["excellent", "good", "average", "not_good"]);
 const lenEnum = z.enum(["short", "medium", "detailed"]);
 
+async function resolveSlug(db: Awaited<ReturnType<typeof getDb>>, slug: string): Promise<string | null> {
+  const { data, error } = await db.rpc("resolve_business_slug", { _slug: slug });
+  if (error || typeof data !== "string" || data.length === 0 || data === slug) return null;
+  return data;
+}
+
 async function getDb() {
   if (process.env["SUPABASE_SERVICE_ROLE_KEY"] && process.env["SUPABASE_URL"]) {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -18,7 +24,8 @@ async function getDb() {
 }
 
 export interface PublicBusinessPayload {
-  status: "ok" | "not_found" | "unavailable";
+  status: "ok" | "not_found" | "unavailable" | "redirect";
+  redirectSlug?: string;
   business?: {
     id: string;
     name: string;
@@ -60,6 +67,8 @@ export const getPublicBusiness = createServerFn({ method: "GET" })
       .maybeSingle();
 
     if (!business) {
+      const redirected = await resolveSlug(db, data.slug);
+      if (redirected) return { status: "redirect", redirectSlug: redirected };
       const { data: status } = await db.rpc("public_business_status", { _slug: data.slug });
       if (status === "unavailable") return { status: "unavailable" };
       return { status: "not_found" };

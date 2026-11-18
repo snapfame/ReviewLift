@@ -1,1 +1,5 @@
 project_id = "clvikleflahxzutfzbar"
+
+# Local Supabase only. The hosted project still uses the dashboard setting.
+[auth.email]
+enable_confirmations = false

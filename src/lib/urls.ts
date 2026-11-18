@@ -1,3 +1,5 @@
+export const PRODUCTION_ORIGIN = "https://reviewlift.digicrave.in";
+
 export function isSafeHttpUrl(value: string): boolean {
   try {
     const parsed = new URL(value.trim());

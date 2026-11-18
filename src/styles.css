@@ -188,3 +188,161 @@
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-soft);
 }
+
+/* Public marketing site. Scoped so dashboards keep the app theme. */
+.rl-site {
+  --brand-primary: #075bff;
+  --brand-primary-hover: #0047d9;
+  --brand-bright: #2478ff;
+  --brand-navy: #071b3a;
+  --brand-light: #eef4ff;
+
+  --background: #fafaf8;
+  --surface: #ffffff;
+  --foreground: #101010;
+  --text-secondary: #737373;
+  --border-subtle: #e8e8e5;
+
+  --rl-ink: var(--foreground);
+  --rl-dark: #101010;
+  --rl-paper: var(--background);
+  --rl-white: var(--surface);
+  --rl-muted: var(--text-secondary);
+  --rl-line: var(--border-subtle);
+
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Geist, "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+.rl-site h1,
+.rl-site h2,
+.rl-site h3,
+.rl-site h4 {
+  font-family: Geist, "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.045em;
+  color: inherit;
+}
+
+.rl-wrap {
+  width: min(1440px, calc(100% - 2.5rem));
+  margin-inline: auto;
+}
+
+@media (min-width: 768px) {
+  .rl-wrap {
+    width: min(1440px, calc(100% - 4rem));
+  }
+}
+
+.rl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  border-radius: 999px;
+  padding: 0.7rem 1.15rem;
+  font-size: 0.925rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: transform 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+.rl-btn:hover {
+  transform: translateY(-1px);
+}
+
+.rl-btn-primary {
+  background: var(--brand-primary);
+  color: #fff;
+}
+
+.rl-btn-primary:hover {
+  background: var(--brand-primary-hover);
+}
+
+.rl-btn-on-brand {
+  background: #fff;
+  color: var(--brand-navy);
+}
+
+.rl-btn-on-brand:hover {
+  background: var(--brand-light);
+}
+
+.rl-btn-dark {
+  background: var(--foreground);
+  color: #fff;
+}
+
+.rl-btn-dark:hover {
+  background: #242424;
+}
+
+.rl-btn-ghost {
+  background: transparent;
+  color: var(--foreground);
+  box-shadow: inset 0 0 0 1px var(--border-subtle);
+}
+
+.rl-btn-ghost:hover {
+  background: var(--brand-light);
+}
+
+.rl-btn-ghost-light {
+  background: transparent;
+  color: #fff;
+  box-shadow: inset 0 0 0 1px #fff;
+}
+
+.rl-btn-ghost-light:hover {
+  background: rgb(255 255 255 / 0.12);
+}
+
+.rl-site :focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 3px;
+}
+
+.rl-float {
+  animation: rl-float 7s ease-in-out infinite;
+}
+
+@keyframes rl-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.rl-rise {
+  animation: rl-rise 0.7s ease both;
+}
+
+@keyframes rl-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rl-float,
+  .rl-rise,
+  .rl-btn {
+    animation: none;
+    transition: none;
+  }
+
+  .rl-btn:hover {
+    transform: none;
+  }
+}

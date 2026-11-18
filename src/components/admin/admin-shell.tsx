@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard },
   { to: "/admin/businesses", label: "Businesses", icon: Building2 },
-  { to: "/admin/users", label: "Users", icon: Users },
+  { to: "/admin/users", label: "Manage Accounts", icon: Users },
   { to: "/admin/sessions", label: "Review Sessions", icon: MessageSquare },
   { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/admin/plans", label: "Plans", icon: CreditCard },

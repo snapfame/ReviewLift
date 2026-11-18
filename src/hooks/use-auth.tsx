@@ -2,12 +2,14 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import type { Session, User } from "@supabase/supabase-js";
 
 import { supabase } from "@/integrations/supabase/client";
+import { SUSPENDED_LOGIN_MESSAGE } from "@/lib/account-status";
 
 export interface AuthProfile {
   id: string;
   full_name: string | null;
   email: string | null;
   system_role: "user" | "super_admin";
+  account_status?: "active" | "suspended";
 }
 
 interface AuthContextValue {
@@ -74,12 +76,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfileReady(false);
     supabase
       .from("profiles")
-      .select("id,full_name,email,system_role")
+      .select("id,full_name,email,system_role,account_status")
       .eq("id", user.id)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(async ({ data, error }) => {
         if (!active) return;
-        setProfile(data ? (data as AuthProfile) : null);
+        let profile = data as AuthProfile | null;
+        if (error) {
+          const fallback = await supabase
+            .from("profiles")
+            .select("id,full_name,email,system_role")
+            .eq("id", user.id)
+            .maybeSingle();
+          profile = fallback.data ? { ...fallback.data, account_status: "active" } : null;
+        }
+        if (!active) return;
+        if (profile?.account_status === "suspended") {
+          sessionStorage.setItem("reviewlift:suspended", SUSPENDED_LOGIN_MESSAGE);
+          void supabase.auth.signOut();
+          setProfile(null);
+          setProfileReady(true);
+          return;
+        }
+        setProfile(profile);
         setProfileReady(true);
       })
       .catch(() => {

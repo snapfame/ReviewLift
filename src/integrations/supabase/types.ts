@@ -233,6 +233,7 @@ export type Database = {
           onboarding_completed: boolean
           phone: string | null
           postal_code: string | null
+          qr_reprint_required: boolean
           slug: string
           state: string | null
           status: Database["public"]["Enums"]["business_status"]
@@ -254,6 +255,7 @@ export type Database = {
           onboarding_completed?: boolean
           phone?: string | null
           postal_code?: string | null
+          qr_reprint_required?: boolean
           slug: string
           state?: string | null
           status?: Database["public"]["Enums"]["business_status"]
@@ -275,6 +277,7 @@ export type Database = {
           onboarding_completed?: boolean
           phone?: string | null
           postal_code?: string | null
+          qr_reprint_required?: boolean
           slug?: string
           state?: string | null
           status?: Database["public"]["Enums"]["business_status"]
@@ -455,28 +458,79 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_status: string
           created_at: string
           email: string | null
           full_name: string | null
           id: string
+          suspended_at: string | null
+          suspended_by: string | null
+          suspension_reason: string | null
           system_role: Database["public"]["Enums"]["system_role"]
           updated_at: string
         }
         Insert: {
+          account_status?: string
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
           system_role?: Database["public"]["Enums"]["system_role"]
           updated_at?: string
         }
         Update: {
+          account_status?: string
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
           system_role?: Database["public"]["Enums"]["system_role"]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      registration_notifications: {
+        Row: {
+          admin_sent_at: string | null
+          attempt_started_at: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          last_error: string | null
+          user_id: string
+          welcome_error: string | null
+          welcome_sent_at: string | null
+          admin_error: string | null
+        }
+        Insert: {
+          admin_sent_at?: string | null
+          attempt_started_at?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          last_error?: string | null
+          user_id: string
+          welcome_error?: string | null
+          welcome_sent_at?: string | null
+          admin_error?: string | null
+        }
+        Update: {
+          admin_sent_at?: string | null
+          attempt_started_at?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          last_error?: string | null
+          user_id?: string
+          welcome_error?: string | null
+          welcome_sent_at?: string | null
+          admin_error?: string | null
         }
         Relationships: []
       }
@@ -814,6 +868,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_list_accounts: {
+        Args: Record<string, never>
+        Returns: {
+          account_status: string
+          business_name: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          last_sign_in_at: string | null
+          registered_at: string
+          suspension_reason: string | null
+        }[]
+      }
+      change_business_slug: {
+        Args: { _business_id: string; _slug: string }
+        Returns: Json
+      }
+      claim_registration_notification: {
+        Args: { _user_id: string; _email: string; _full_name: string }
+        Returns: Json
+      }
       is_business_active: { Args: { _business_id: string }; Returns: boolean }
       is_business_member: {
         Args: { _business_id: string; _user_id: string }
@@ -821,6 +896,7 @@ export type Database = {
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       public_business_status: { Args: { _slug: string }; Returns: string }
+      resolve_business_slug: { Args: { _slug: string }; Returns: string }
       start_review_session: {
         Args: { _business_id: string; _service_ids: Json; _from_qr: boolean }
         Returns: string
@@ -828,6 +904,10 @@ export type Database = {
       recent_review_signatures: {
         Args: { _business_id: string; _limit: number }
         Returns: { review_hash: string; normalized_text: string }[]
+      }
+      set_account_suspension: {
+        Args: { _reason: string; _suspend: boolean; _user_id: string }
+        Returns: Json
       }
       save_review_generation: {
         Args: {

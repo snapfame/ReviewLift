@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureProfile } from "@/lib/business";
+import { PRODUCTION_ORIGIN } from "@/lib/urls";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -37,7 +38,10 @@ function SignupPage() {
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { full_name: fullName.trim() } },
+      options: {
+        data: { full_name: fullName.trim() },
+        emailRedirectTo: PRODUCTION_ORIGIN,
+      },
     });
     setBusy(false);
     if (error) {
@@ -63,7 +67,7 @@ function SignupPage() {
     return (
       <AuthCard
         title="Check your email"
-        description="We sent a confirmation link. After you confirm, log in to finish setting up your business."
+        description="Your account was created, but email confirmation is still required before you can open the dashboard. Confirm the email, then log in."
       >
         <Button asChild className="w-full">
           <Link to="/login">Go to log in</Link>

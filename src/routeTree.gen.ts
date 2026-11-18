@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -43,10 +44,16 @@ import { Route as DashboardSessionsRouteImport } from './routes/dashboard/sessio
 import { Route as RBusinessSlugRouteImport } from './routes/r.$businessSlug'
 import { Route as AdminBusinessesBusinessIdRouteImport } from './routes/admin/businesses.$businessId'
 import { Route as AdminBusinessesNewRouteImport } from './routes/admin/businesses.new'
+import { Route as ApiInternalRegistrationConfirmedRouteImport } from './routes/api/internal/registration-confirmed'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -215,9 +222,16 @@ const AdminBusinessesNewRoute = AdminBusinessesNewRouteImport.update({
   path: '/new',
   getParentRoute: () => AdminBusinessesRoute,
 } as any)
+const ApiInternalRegistrationConfirmedRoute =
+  ApiInternalRegistrationConfirmedRouteImport.update({
+    id: '/api/internal/registration-confirmed',
+    path: '/api/internal/registration-confirmed',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
@@ -251,9 +265,11 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof DashboardIndexRoute
   '/admin/businesses/$businessId': typeof AdminBusinessesBusinessIdRoute
   '/admin/businesses/new': typeof AdminBusinessesNewRoute
+  '/api/internal/registration-confirmed': typeof ApiInternalRegistrationConfirmedRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -285,10 +301,12 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardIndexRoute
   '/admin/businesses/$businessId': typeof AdminBusinessesBusinessIdRoute
   '/admin/businesses/new': typeof AdminBusinessesNewRoute
+  '/api/internal/registration-confirmed': typeof ApiInternalRegistrationConfirmedRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
@@ -322,11 +340,13 @@ export interface FileRoutesById {
   '/dashboard/': typeof DashboardIndexRoute
   '/admin/businesses/$businessId': typeof AdminBusinessesBusinessIdRoute
   '/admin/businesses/new': typeof AdminBusinessesNewRoute
+  '/api/internal/registration-confirmed': typeof ApiInternalRegistrationConfirmedRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/admin'
     | '/contact'
     | '/dashboard'
@@ -360,9 +380,11 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/admin/businesses/$businessId'
     | '/admin/businesses/new'
+    | '/api/internal/registration-confirmed'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/contact'
     | '/features'
     | '/forgot-password'
@@ -394,9 +416,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/admin/businesses/$businessId'
     | '/admin/businesses/new'
+    | '/api/internal/registration-confirmed'
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/admin'
     | '/contact'
     | '/dashboard'
@@ -430,10 +454,12 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/admin/businesses/$businessId'
     | '/admin/businesses/new'
+    | '/api/internal/registration-confirmed'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRouteWithChildren
@@ -448,6 +474,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   TermsRoute: typeof TermsRoute
   RBusinessSlugRoute: typeof RBusinessSlugRoute
+  ApiInternalRegistrationConfirmedRoute: typeof ApiInternalRegistrationConfirmedRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -457,6 +484,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -690,6 +724,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBusinessesNewRouteImport
       parentRoute: typeof AdminBusinessesRoute
     }
+    '/api/internal/registration-confirmed': {
+      id: '/api/internal/registration-confirmed'
+      path: '/api/internal/registration-confirmed'
+      fullPath: '/api/internal/registration-confirmed'
+      preLoaderRoute: typeof ApiInternalRegistrationConfirmedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -761,6 +802,7 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRouteWithChildren,
@@ -775,6 +817,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   TermsRoute: TermsRoute,
   RBusinessSlugRoute: RBusinessSlugRoute,
+  ApiInternalRegistrationConfirmedRoute: ApiInternalRegistrationConfirmedRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
