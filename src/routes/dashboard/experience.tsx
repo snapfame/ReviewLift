@@ -26,7 +26,7 @@ function ExperiencePage() {
   const [defaultLength, setDefaultLength] = useState<"short" | "medium" | "detailed">("medium");
   const [allowRegenerate, setAllowRegenerate] = useState(true);
   const [showNote, setShowNote] = useState(true);
-  const [cta, setCta] = useState("Copy & Continue to Google");
+  const [cta, setCta] = useState("Copy Review & Open Google");
   const [attributes, setAttributes] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
 
@@ -48,7 +48,11 @@ function ExperiencePage() {
         setDefaultLength(data.default_length);
         setAllowRegenerate(data.allow_regenerate);
         setShowNote(data.show_optional_note);
-        setCta(data.google_cta_text);
+        setCta(
+          data.google_cta_text === "Copy & Continue to Google"
+            ? "Copy Review & Open Google"
+            : data.google_cta_text,
+        );
         setAttributes(Array.isArray(data.selectable_attributes) ? (data.selectable_attributes as string[]) : []);
       });
   }, [business]);

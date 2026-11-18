@@ -1,6 +1,6 @@
 import { Instagram } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,15 @@ import {
 } from "@/lib/public-review-client";
 import { cn } from "@/lib/utils";
 
+const GOOGLE_REVIEW_CTA = "Copy Review & Open Google";
+const LEGACY_GOOGLE_CTA = "Copy & Continue to Google";
+
+function googleReviewCta(value: string | null | undefined): string {
+  const text = value?.trim();
+  if (!text || text === LEGACY_GOOGLE_CTA) return GOOGLE_REVIEW_CTA;
+  return text;
+}
+
 type Lang = "english" | "hinglish" | "hindi";
 type Length = "short" | "medium" | "detailed";
 
@@ -44,6 +53,17 @@ export function ReviewFlow({ slug, fromQr }: { slug: string; fromQr: boolean }) 
   const [originalDraft, setOriginalDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [editedTracked, setEditedTracked] = useState(false);
+  const [handoff, setHandoff] = useState<"idle" | "copied" | "manual">("idle");
+  const [finePointer, setFinePointer] = useState(false);
+  const draftRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const query = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const update = () => setFinePointer(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -231,6 +251,7 @@ export function ReviewFlow({ slug, fromQr }: { slug: string; fromQr: boolean }) 
       setDraft(result.text);
       setOriginalDraft(result.text);
       setEditedTracked(false);
+      setHandoff("idle");
       setStep(3);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not create a draft. Try again.");
@@ -257,8 +278,17 @@ export function ReviewFlow({ slug, fromQr }: { slug: string; fromQr: boolean }) 
     }
   };
 
+  const selectDraft = () => {
+    const field = draftRef.current;
+    if (!field) return;
+    field.focus();
+    field.select();
+    field.setSelectionRange(0, field.value.length);
+  };
+
   const onDraftChange = (value: string) => {
     setDraft(value);
+    setHandoff("idle");
     if (!editedTracked && originalDraft && value.trim() !== originalDraft.trim() && generationId) {
       setEditedTracked(true);
       void persistAction("edited", value);
@@ -268,26 +298,38 @@ export function ReviewFlow({ slug, fromQr }: { slug: string; fromQr: boolean }) 
   const handleCopy = async () => {
     const ok = await copyText(draft);
     if (!ok) {
-      toast.error("Clipboard access was denied. You can still select and copy the text.");
+      setHandoff("manual");
+      selectDraft();
       return;
     }
-    toast.success("Review copied.");
+    setHandoff("copied");
     await persistAction("copied", draft);
+  };
+
+  const openGoogle = () => {
+    const url = business?.google_review_url?.trim();
+    if (!url) {
+      toast.error("Google Review link has not been configured for this business yet.");
+      return false;
+    }
+    if (!isSafeHttpUrl(url) || !openSafeUrl(url)) {
+      toast.error("The Google Review link for this business is invalid.");
+      return false;
+    }
+    void persistAction("google_clicked", draft);
+    return true;
   };
 
   const handleGoogle = async () => {
     const ok = await copyText(draft);
-    if (ok) toast.success("Review copied.");
-    await persistAction("copied", draft);
-    await persistAction("google_clicked", draft);
-    const url = business?.google_review_url?.trim();
-    if (!url) {
-      toast.error("Google Review link has not been configured for this business yet.");
+    if (!ok) {
+      setHandoff("manual");
+      selectDraft();
       return;
     }
-    if (!isSafeHttpUrl(url) || !openSafeUrl(url)) {
-      toast.error("The Google Review link for this business is invalid.");
-    }
+    setHandoff("copied");
+    await persistAction("copied", draft);
+    openGoogle();
   };
 
   const handleInstagram = async () => {
@@ -389,7 +431,7 @@ export function ReviewFlow({ slug, fromQr }: { slug: string; fromQr: boolean }) 
         </ol>
       </header>
 
-      <main className="mx-auto max-w-md px-4 py-6 pb-28">
+      <main className={cn("mx-auto max-w-md px-4 py-6", step === 3 ? "pb-72" : "pb-28")}>
         {step === 1 ? (
           <section>
             <h1 className="text-2xl font-semibold">{settings.customer_headline || "What did you visit us for?"}</h1>
@@ -519,6 +561,7 @@ export function ReviewFlow({ slug, fromQr }: { slug: string; fromQr: boolean }) 
               <p className="mt-6 text-sm text-muted-foreground">Creating your review draft…</p>
             ) : (
               <Textarea
+                ref={draftRef}
                 className="mt-4 min-h-48 text-base leading-relaxed"
                 value={draft}
                 onChange={(e) => onDraftChange(e.target.value)}
@@ -539,7 +582,7 @@ export function ReviewFlow({ slug, fromQr }: { slug: string; fromQr: boolean }) 
         ) : null}
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-border bg-background/95 p-4 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 border-t border-border bg-background/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur">
         <div className="mx-auto flex max-w-md flex-col gap-2">
           {step === 1 ? (
             <Button
@@ -568,13 +611,34 @@ export function ReviewFlow({ slug, fromQr }: { slug: string; fromQr: boolean }) 
           ) : null}
           {step === 3 ? (
             <>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Google requires you to paste the copied review manually.
+              </p>
+              {handoff === "copied" ? (
+                <div role="status" className="rounded-xl border border-border bg-card px-3 py-3 text-sm leading-relaxed">
+                  <p>Your review is copied! On Google, tap and hold the review box, then select Paste.</p>
+                  {finePointer ? (
+                    <p className="mt-2">Click the review box and press Ctrl+V (Windows) or Cmd+V (Mac).</p>
+                  ) : null}
+                </div>
+              ) : null}
+              {handoff === "manual" ? (
+                <div role="status" className="rounded-xl border border-border bg-card px-3 py-3 text-sm leading-relaxed">
+                  <p>
+                    Clipboard permission was denied. The review is selected. Copy it, then open Google.
+                  </p>
+                  <Button type="button" variant="outline" className="mt-3 min-h-11 w-full" onClick={() => openGoogle()}>
+                    Open Google
+                  </Button>
+                </div>
+              ) : null}
               <Button
-                className="min-h-12 w-full text-base"
+                className="min-h-12 w-full whitespace-normal text-center text-base leading-snug"
                 style={{ background: accent }}
                 disabled={busy || !draft}
                 onClick={() => void handleGoogle()}
               >
-                {settings.google_cta_text || "Copy & Continue to Google"}
+                {googleReviewCta(settings.google_cta_text)}
               </Button>
               {business.instagram_url ? (
                 <Button type="button" variant="outline" className="min-h-12 w-full" onClick={() => void handleInstagram()}>
